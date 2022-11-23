@@ -20,12 +20,12 @@ const webhook = async (req: NextApiRequest, res: NextApiResponse) => {
     const contact = value.contacts[0];
     const message = <iWebhookText>value.messages[0];
     const { data } = <{ data: iUser | false }>await checkExistingUser(contact.wa_id);
-    if (!data) return res.status(200).json({ message: "user not registered" });
     if (message.text.body.toLowerCase() === "register") {
       await registerUser(contact.wa_id, contact.profile.name);
       await sendMessage(onBoarding(contact.profile.name), contact.wa_id);
       return res.status(200).json({ message: "User On-boarded" });
     }
+    if (!data) return res.status(200).json({ message: "user not registered" });
     const userCurrentNode = data.node;
     const todo = nodes.find((item) => item.node === userCurrentNode);
     await todo?.action(req.body);
