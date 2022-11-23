@@ -9,7 +9,11 @@ import iWebhook from "../../types/whatsapp/webhook/webhook";
 
 const webhook = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "GET") {
-    return res.status(200).json({ message: "hello there" });
+    return res
+      .status(200)
+      .json({
+        message: `user: ${process.env.DB_USER}, db: ${process.env.DB_NAME}, wa: ${process.env.PHONE_NUMBER_ID}`,
+      });
   }
   try {
     const { entry } = <iWebhook>req.body;
