@@ -31,6 +31,7 @@ const webhook = async (req: NextApiRequest, res: NextApiResponse) => {
     await todo?.action(req.body);
     return res.status(200).json({ message: "todo resolved" });
   } catch (error: any) {
+    console.log(error);
     return ErrorHandler(error, res);
   }
 };
