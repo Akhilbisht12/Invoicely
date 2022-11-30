@@ -19,11 +19,13 @@ const webhook = async (req: NextApiRequest, res: NextApiResponse) => {
     const message = value.messages[0];
     console.log(contact.profile.name, message);
     const { data } = <{ data: iUser | false }>await checkExistingUser(contact.wa_id);
-    if ((message as iWebhookText).text.body.toLowerCase() === "register") {
-      if (data) return await sendMessage(idleMenu(contact.profile.name), contact.wa_id);
-      await registerUser(contact.wa_id, contact.profile.name);
-      await sendMessage(onBoarding(contact.profile.name), contact.wa_id);
-      return res.status(200).json({ message: "User On-boarded" });
+    if (message.type === "text") {
+      if ((message as iWebhookText).text.body.toLowerCase() === "register") {
+        if (data) return await sendMessage(idleMenu(contact.profile.name), contact.wa_id);
+        await registerUser(contact.wa_id, contact.profile.name);
+        await sendMessage(onBoarding(contact.profile.name), contact.wa_id);
+        return res.status(200).json({ message: "User On-boarded" });
+      }
     }
     if (!data) return res.status(200).json({ message: "user not registered" });
     const userCurrentNode = data.node;
