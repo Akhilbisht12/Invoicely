@@ -86,13 +86,13 @@ export const nodes = [
     node: "Idle",
     action: async (body: iWebhook) => {
       const { contacts, messages } = body.entry[0].changes[0].value;
-      if ((messages[0] as iWebhookReply).interactive) {
+      if (messages[0].type === "interactive") {
         if ((messages[0] as iWebhookReply).interactive.button_reply.id === "invoice") {
           await sendMessage(getCustomerName(), contacts[0].wa_id);
-          await updateUserNode(contacts[0].wa_id, "Inv-cName");
+          return await updateUserNode(contacts[0].wa_id, "Inv-cName");
         }
       }
-      await sendMessage(idleMenu(contacts[0].profile.name), contacts[0].wa_id);
+      return await sendMessage(idleMenu(contacts[0].profile.name), contacts[0].wa_id);
     },
   },
   {

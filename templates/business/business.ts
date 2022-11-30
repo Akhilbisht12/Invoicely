@@ -128,7 +128,7 @@ export const getCustomerName = () => {
   return {
     type: "text",
     text: {
-      body: "Cool! lets, start making the invoice \n Send your CUSTOMER NAME in the your next message",
+      body: "Cool! lets, start making the invoice. \n Send your CUSTOMER NAME in the your next message",
     },
   };
 };
