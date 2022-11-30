@@ -4,12 +4,18 @@ export interface iInvoice {
   cAddress: string;
   cGst: string;
   items: {
-    name: string;
-    hsn?: string;
     quantity: number;
-    rate: number;
+    product: string;
   }[];
-  discount: number;
-  CGst: number;
-  SGst: number;
+  CGst: string;
+  SGst: string;
+  node?: string;
+  owner: number;
+}
+
+export interface iProduct {
+  name: string;
+  hsn?: string;
+  rate: string;
+  description: string;
 }
