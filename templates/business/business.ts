@@ -58,7 +58,7 @@ export const getCompanyGst = () => {
           {
             type: "reply",
             reply: {
-              id: "get_gst",
+              id: "no_gst",
               title: "I Don't Have GST NO.",
             },
           },

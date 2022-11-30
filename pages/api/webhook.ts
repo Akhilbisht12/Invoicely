@@ -17,6 +17,7 @@ const webhook = async (req: NextApiRequest, res: NextApiResponse) => {
     const value = entry[0].changes[0].value;
     const contact = value.contacts[0];
     const message = value.messages[0];
+    console.log(contact.profile.name, message);
     const { data } = <{ data: iUser | false }>await checkExistingUser(contact.wa_id);
     if ((message as iWebhookText).text.body.toLowerCase() === "register") {
       if (data) return await sendMessage(idleMenu(contact.profile.name), contact.wa_id);
