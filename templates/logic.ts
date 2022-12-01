@@ -10,6 +10,8 @@ import {
   updateConsumerGst,
   updateInvoiceNode,
 } from "../handlers/invoice/function";
+import { insertOneProduct } from "../handlers/product/crud";
+import { createProductWithName, updateProductDescription, updateProductPrice } from "../handlers/product/functions";
 import { updateUserNode } from "../handlers/user/function";
 import { sendMessage } from "../handlers/whatsapp/sendMessage";
 import iWebhookReply from "../types/whatsapp/webhook/reply";
@@ -26,6 +28,8 @@ import {
   getCustomerName,
   idleMenu,
 } from "./business/business";
+
+import * as productTemplates from "./product/product";
 export const nodes = [
   {
     node: "CR0",
@@ -121,16 +125,80 @@ export const nodes = [
     node: "Inv-cGst",
     action: async (body: iWebhook) => {
       const { contacts, messages } = body.entry[0].changes[0].value;
-
       const currentNode = "Inv-cGst";
       const toNode = "Inv-pName";
-      if ((messages[0] as iWebhookReply).interactive.button_reply.id === "skip_cGst") {
-        return await updateInvoiceNode(contacts[0].wa_id, currentNode, toNode);
+      if (messages[0].type === "interactive") {
+        if ((messages[0] as iWebhookReply).interactive.button_reply.id === "skip_cGst") {
+          return await updateInvoiceNode(contacts[0].wa_id, currentNode, toNode);
+        }
       } else {
         await updateConsumerGst(contacts[0].wa_id, (messages[0] as iWebhookText).text.body, currentNode, toNode);
       }
-      // sendMessage(addProduct());
+      sendMessage(productTemplates.getProductName(), contacts[0].wa_id);
       updateUserNode(contacts[0].wa_id, toNode);
+    },
+  },
+  {
+    node: "Inv-pName",
+    action: async (body: iWebhook) => {
+      const { contacts, messages } = body.entry[0].changes[0].value;
+      const toNode = "Inv-pDesc";
+      if (messages[0].type === "text") {
+        await createProductWithName(messages[0].text.body, contacts[0].wa_id);
+        await sendMessage(productTemplates.getProductDescription(), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product name in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pDesc",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pDesc";
+      const toNode = "Inv-pPrice";
+      if (messages[0].type === "text") {
+        await updateProductDescription(messages[0].text.body, contacts[0].wa_id, currentNode, toNode);
+        await sendMessage(productTemplates.getProductPrice(), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product description in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pPrice",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pPrice";
+      const toNode = "Inv-pHsn";
+      if (messages[0].type === "text") {
+        await updateProductPrice(messages[0].text.body, contacts[0].wa_id, currentNode, toNode);
+        await sendMessage(productTemplates.getProductHsn(), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product price in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pHsn",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pHsn";
+      const toNode = "Inv-pAdd";
+      if (messages[0].type === "text") {
+        const { data } = await updateProductPrice(messages[0].text.body, contacts[0].wa_id, currentNode, toNode);
+        await sendMessage(productTemplates.addCreatedProductToInvoice(data.name, data._id), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product hsn in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
     },
   },
 ];

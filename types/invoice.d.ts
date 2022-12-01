@@ -12,10 +12,3 @@ export interface iInvoice {
   node?: string;
   owner: number;
 }
-
-export interface iProduct {
-  name: string;
-  hsn?: string;
-  rate: string;
-  description: string;
-}

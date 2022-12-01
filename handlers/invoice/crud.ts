@@ -17,7 +17,7 @@ export const insertOneInvoice = async (invoice: iInvoice): Promise<iInvoice> => 
   return invoice;
 };
 
-export const updateOneInvoice = async (filter: any, update: any) => {
+export const updateOneInvoice = async (filter: any, update: any, arrayFilters?: any) => {
   const database = await getDatabase();
-  await database.collection<iInvoice>(INVOICE).updateOne(filter, update);
+  await database.collection<iInvoice>(INVOICE).updateOne(filter, update, arrayFilters);
 };

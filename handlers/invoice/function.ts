@@ -1,5 +1,6 @@
 import { getCustomerGst } from "../../templates/business/business";
 import { iHandlerResponse } from "../../types/api/handler";
+import { iInvoice } from "../../types/invoice";
 import { sendMessage } from "../whatsapp/sendMessage";
 import { insertOneInvoice, updateOneInvoice } from "./crud";
 
@@ -13,7 +14,7 @@ export const createInvoiceWithCName = async (recipient: number, cName: string): 
     consumer: "",
     items: [],
     SGst: "",
-    node: "INV-cName",
+    node: "INV-cAddress",
   });
   return { status: 200, data: company };
 };
@@ -44,5 +45,27 @@ export const updateConsumerGst = async (
   toNode: string
 ): Promise<iHandlerResponse> => {
   await updateOneInvoice({ owner, node: currentNode }, { $set: { cGst, node: toNode } });
+  return { status: 200, data: null };
+};
+
+export const addProductToInvoice = async (
+  owner: number,
+  currentNode: string,
+  toNode: string,
+  productId: string
+): Promise<iHandlerResponse> => {
+  await updateOneInvoice(
+    { owner, node: currentNode },
+    { $push: { items: { product: productId, quantity: 0 } }, $set: { node: toNode } }
+  );
+  return { status: 200, data: null };
+};
+
+export const addProductQuantity = async (owner: number, currentNode: string, toNode: string, quantity: string) => {
+  await updateOneInvoice(
+    { owner, node: currentNode },
+    { $set: { "item.$[elem].quantity": quantity } },
+    { arrayFilters: [{ "elem.quantity": { $eq: 0 } }] }
+  );
   return { status: 200, data: null };
 };
