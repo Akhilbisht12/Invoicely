@@ -7,7 +7,7 @@ export const checkExistingUser = async (phone: number): Promise<iHandlerResponse
 };
 
 export const registerUser = async (phone: number, name: string): Promise<iHandlerResponse> => {
-  const data = await insertOneUser({ phone, name, company: [], node: "  " });
+  const data = await insertOneUser({ phone, name, company: [], node: "CR0" });
   return { status: 200, data };
 };
 

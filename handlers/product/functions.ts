@@ -39,7 +39,11 @@ export const updateProductPrice = async (
   return { data: updatedProduct, status: 200 };
 };
 
-export const updateProductHsn = async (hsn: number, phoneNo: number, currentNode: string) => {
+export const updateProductHsn = async (
+  hsn: number | string,
+  phoneNo: number,
+  currentNode: string
+): Promise<iHandlerResponse> => {
   const updatedProduct = await updateOneProduct(
     { owner: phoneNo, node: currentNode },
     { $set: { hsn }, $unset: { node: "" } }

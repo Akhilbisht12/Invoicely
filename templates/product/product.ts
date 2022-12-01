@@ -56,3 +56,65 @@ export const addCreatedProductToInvoice = (name: string, id: string) => {
     },
   };
 };
+
+export const addProductQuantity = () => {
+  return {
+    type: "text",
+    text: {
+      body: "congrats!, lets add the quantity of the product you just added",
+    },
+  };
+};
+
+export const sendOwnerProducts = (products: any) => {
+  return {
+    type: "interactive",
+    interactive: {
+      type: "list",
+      body: {
+        text: "Here's the list of products you have in your inventory, please select one by one to add to your invoice",
+      },
+      footer: {
+        text: "Tab on product to add it on invoice",
+      },
+      action: {
+        button: "Product List",
+        sections: [
+          {
+            title: "Products List",
+            rows: products.map((item: any) => {
+              return {
+                id: item._id,
+                title: item.name.subString(0, 24),
+                description: item.description.subString(0, 72),
+              };
+            }),
+          },
+        ],
+      },
+    },
+  };
+};
+
+export const doneCreatingProducts = () => {
+  return {
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: {
+        text: "If you have added all the products to your invoice press this button we'll send the invoice to you.",
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: "get_invoice",
+              title: "Get Invoice",
+            },
+          },
+        ],
+      },
+    },
+  };
+};

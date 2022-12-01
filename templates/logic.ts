@@ -5,15 +5,23 @@ import {
   updateCompanyNode,
 } from "../handlers/company/function";
 import {
+  addProductQuantity,
+  addProductToInvoice,
   createInvoiceWithCName,
   updateCAddress,
   updateConsumerGst,
   updateInvoiceNode,
 } from "../handlers/invoice/function";
-import { insertOneProduct } from "../handlers/product/crud";
-import { createProductWithName, updateProductDescription, updateProductPrice } from "../handlers/product/functions";
+import {
+  createProductWithName,
+  findOwnerProducts,
+  updateProductDescription,
+  updateProductHsn,
+  updateProductPrice,
+} from "../handlers/product/functions";
 import { updateUserNode } from "../handlers/user/function";
 import { sendMessage } from "../handlers/whatsapp/sendMessage";
+import iWebhookList from "../types/whatsapp/webhook/list";
 import iWebhookReply from "../types/whatsapp/webhook/reply";
 import iWebhookText from "../types/whatsapp/webhook/text";
 import iWebhook from "../types/whatsapp/webhook/webhook";
@@ -192,11 +200,68 @@ export const nodes = [
       const currentNode = "Inv-pHsn";
       const toNode = "Inv-pAdd";
       if (messages[0].type === "text") {
-        const { data } = await updateProductPrice(messages[0].text.body, contacts[0].wa_id, currentNode, toNode);
+        const { data } = await updateProductHsn(messages[0].text.body, contacts[0].wa_id, currentNode);
         await sendMessage(productTemplates.addCreatedProductToInvoice(data.name, data._id), contacts[0].wa_id);
         return await updateUserNode(contacts[0].wa_id, toNode);
       } else {
         const text = "sorry we did'nt understood that we are looking for product hsn in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pAdd",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pAdd";
+      const toNode = "Inv-pQuantity";
+      if (messages[0].type === "interactive") {
+        const productId = (messages[0] as iWebhookReply).interactive.button_reply.id;
+        await addProductToInvoice(contacts[0].wa_id, currentNode, toNode, productId);
+        await sendMessage(productTemplates.addProductQuantity(), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product quantity in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pQuantity",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pQuantity";
+      const toNode = "Inv-pMenu";
+      if (messages[0].type === "text") {
+        await addProductQuantity(contacts[0].wa_id, currentNode, toNode, messages[0].text.body);
+        const { data } = await findOwnerProducts(contacts[0].wa_id);
+        await sendMessage(productTemplates.sendOwnerProducts(data), contacts[0].wa_id);
+        return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product quantity in your next message.";
+        return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
+      }
+    },
+  },
+  {
+    node: "Inv-pMenu",
+    action: async (body: iWebhook) => {
+      const { messages, contacts } = body.entry[0].changes[0].value;
+      const currentNode = "Inv-pMenu";
+      const toNode = "Inv-pMenu";
+      if (messages[0].type === "interactive") {
+        if ((messages[0] as iWebhookReply).interactive.button_reply.id === "getInvoice") {
+          return sendMessage(customMessageTemplate("sending invoice"), contacts[0].wa_id);
+        }
+        const productId = (messages[0] as iWebhookList).interactive.list_reply.id;
+        await addProductToInvoice(contacts[0].wa_id, currentNode, toNode, productId);
+        const response = await findOwnerProducts(contacts[0].wa_id);
+        const products = response.data;
+        await sendMessage(productTemplates.sendOwnerProducts(products), contacts[0].wa_id);
+        await sendMessage(productTemplates.doneCreatingProducts(), contacts[0].wa_id);
+        // return await updateUserNode(contacts[0].wa_id, toNode);
+      } else {
+        const text = "sorry we did'nt understood that we are looking for product from above menu in your next reply.";
         return await sendMessage(customMessageTemplate(text), contacts[0].wa_id);
       }
     },
